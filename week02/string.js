@@ -4,3 +4,4 @@ const test = '89898'
 
 console.log(rule.test(test))
 
+const ru = /\"(?:[^"\\\n\r]|\\u[0-9a-f]|\\u[0-9a-f])+\"/i
