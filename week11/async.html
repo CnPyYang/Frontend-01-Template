@@ -25,20 +25,10 @@
 <button id="next">next</button>
 
 <script>
-    function green() {
+    function changeColor(color) {
         var lights = document.getElementsByTagName('div');
         for (var i = 0; i < 3; i++) lights[i].classList.remove('light');
-        document.getElementsByClassName('green')[0].classList.add('light');
-    }
-    function red() {
-        var lights = document.getElementsByTagName('div');
-        for (var i = 0; i < 3; i++) lights[i].classList.remove('light');
-        document.getElementsByClassName('red')[0].classList.add('light');
-    }
-    function yellow() {
-        var lights = document.getElementsByTagName('div');
-        for (var i = 0; i < 3; i++) lights[i].classList.remove('light');
-        document.getElementsByClassName('yellow')[0].classList.add('light');
+        document.getElementsByClassName(color)[0].classList.add('light');
     }
 
     function sleep(t) {
@@ -54,13 +44,23 @@
     }
 
     async function go() {
+        // while(true) {
+        //     changeColor('green')
+        //     await sleep(10000)
+        //     changeColor('yellow')
+        //     await sleep(2000)
+        //     changeColor('red')
+        //     await sleep(5000)
+        //     go()
+        // }
         while (true) {
-            green();
+            changeColor('green');
             await happen(document.getElementById('next'), 'click');
-            yellow();
+            changeColor('yellow');
             await happen(document.getElementById('next'), 'click');
-            red();
+            changeColor('red');
             await happen(document.getElementById('next'), 'click');
         }
     }
+    go()
 </script>

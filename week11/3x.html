@@ -17,7 +17,7 @@
 <button onclick="localStorage.map = JSON.stringify(map)">save</button>
 
 <script>
-  var map = localStorage.map ? JSON.parse(localStorage.map) : new Array(10000).fill(0);
+  let map = localStorage.map ? JSON.parse(localStorage.map) : new Array(10000).fill(0);
   let container = document.getElementById("container");
   for (let y = 0; y < 100; y++) {
     for (let x = 0; x < 100; x++) {
@@ -37,7 +37,6 @@
             map[y * 100 + x] = 1;
           }
         }
-
       })
       container.appendChild(cell);
     }
@@ -53,7 +52,36 @@
 
   document.addEventListener('contextmenu', e => e.preventDefault())
 
-  function path(map, start, end) {
+  async function findPath(map, start, end) {
+    map = map.slice()
+    let stack = [start];
 
+    async function insert([x, y]) {
+      if (map[100 * y + x] !== 0) return
+      if (x < 0 || y < 0 || x >= 100 || y >= 100) return
+
+      map[100 * y + x] = 2
+      container.children[y*100 +x].style.backgroundColor = 'lightgreen';
+      await sleep(5)
+      stack.push([x, y])
+    }
+
+    while(stack.length) {
+      let [x,y] = stack.pop()
+      if (x === end[0] && y === end[1]) {
+        return true
+      }
+      await insert([x - 1, y])
+      await insert([x, y - 1])
+      await insert([x + 1, y])
+      await insert([x, y + 1])
+    }
+    return false
+  }
+
+  function sleep(t) {
+    return new Promise((res,rej) => {
+      setTimeout(res,t)
+    })
   }
 </script>

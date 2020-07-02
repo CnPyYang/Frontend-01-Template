@@ -28,72 +28,130 @@
   </body>
   <script>
     // 1 ⭕️;2 ❌
+    let openings = new Map()
+    openings.set([
+      [0, 0, 0],
+      [0, 0, 0],
+      [0, 0, 0]
+    ].toString(), {
+      point: [1,1],
+      result: 0
+    })
     var app = new Vue({
       el: '#pattern',
       data() {
         return{
           pattern: [
-            [2, 0, 0],
-            [0, 1, 0],
+            [0, 0, 0],
+            [0, 0, 0],
             [0, 0, 0]
           ],
-          current: 1
+          current: 1,
+          willWinColor: 0
         }
       },
       methods: {
-        click(i,j) {
-          if (this.pattern[i][j] !== 0) return
-          this.pattern[i].splice(j,1, this.current)
-          const isWin = this.isEnd(i,j)
-          if(isWin)alert(`${this.current} win`)
+        clone(pattern) {
+          return JSON.parse(JSON.stringify(pattern))
+        },
+        computerClick() {
+          let choice = this.bestChoice()
+          if (choice.point) {
+            this.pattern[choice.point[1]].splice(choice.point[0], 1, this.current)
+            if (this.check(choice.point[1], choice.point[0], this.pattern, this.current)) {
+              alert(`${this.current} win`)
+            }
+          }
           this.current = 3 - this.current
         },
-        isEnd(i,j) {
-          let win = true
-          for (let x = 0; x < 3; x++) {
-            if (this.pattern[i][x] !== this.current) {
-              win = false; break;
-            }
-          }
-          if (win) return win
+        click(i,j) {
+          if (this.pattern[i][j] !== 0) return
 
-          win = true
-          for (let x = 0; x < 3; x++) {
-            if (this.pattern[x][j] !== this.current) {
-              win = false; break;
-            }
-          }
-          if (win) return win
+          this.pattern[i].splice(j,1, this.current)
+          if(this.check(i, j, this.pattern, this.current)) alert(`${this.current} win`)
 
-          win = true
-          for (let x = 0; x < 3; x++) {
-            if (this.pattern[x][x] !== this.current) {
-              win = false;break;
-            }
-          }
-          if (win) return win
+          this.current = 3 - this.current
 
-          win = true
+          if (this.willWin(this.pattern, this.current)) {
+            console.log(`${this.current} win`)
+          }
+          this.computerClick()
+        },
+        check(i, j, pattern, color) {
+          let horizontal = true // 水平
+          let vertical = true // 垂直
+          let forwardSlope = true // 正斜
+          let backSlope = true // 反斜
+
           for (let x = 0; x < 3; x++) {
-            if (this.pattern[x][2-x] !== this.current) {
-              win = false;break;
+            if (pattern[i][x] !== color) {
+              horizontal = false;
+            }
+            if (pattern[x][j] !== color) {
+              vertical = false;
+            }
+            if (pattern[x][x] !== color) {
+              backSlope = false;
+            }
+            if (pattern[x][2 - x] !== color) {
+              forwardSlope = false;
             }
           }
-          if (win) return win
+          if (horizontal || vertical || forwardSlope || backSlope) return true
 
           return false
         },
-        willWin() {
+        willWin(pattern, color) {
           for (let i = 0; i < 3; i++) {
-            for (let i = 0; i < 3; i++) {
-
+            for (let j = 0; j < 3; j++) {
+              if(pattern[i][j] !== 0) continue
+              let tmp = this.clone(pattern)
+              tmp[i][j] = color
+              if (this.check(i,j,tmp,color)) {
+                // console.log(i,j)
+                return [j,i]
+              }
             }
           }
+          return null
         },
-        check() {
+        bestChoice (pattern = this.pattern, color = this.current) {
+          if(openings.has(pattern.toString())) {
+            return openings.get(pattern.toString())
+          }
 
+          let point = this.willWin(pattern, color)
+          if (point) {
+            return {
+              point,
+              result: 1
+            }
+          }
+
+          let result = -1
+          for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+              if (pattern[i][j] !== 0) continue
+              let tmp = this.clone(pattern)
+              tmp[i][j] = color
+
+              let opp = this.bestChoice(tmp, 3 - color)
+              if (0 - opp.result >= result ) {
+                point = [j,i]
+                result = 0 - opp.result
+              }
+            }
+          }
+
+          return {
+            point,
+            result: point ? result : 0
+          }
         }
       },
+      mounted() {
+        this.computerClick()
+      }
     })
   </script>
 </html>

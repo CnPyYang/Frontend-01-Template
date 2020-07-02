@@ -1,0 +1,51 @@
+<style>
+  div {
+    background-color: grey;
+    display: inline-block;
+    margin: 30px;
+    width: 100px;
+    height: 100px;
+    border-radius: 50px;
+    ;
+  }
+
+  .green.light {
+    background-color: green;
+  }
+
+  .yellow.light {
+    background-color: yellow;
+  }
+
+  .red.light {
+    background-color: red;
+  }
+</style>
+
+<div class="green"></div>
+<div class="yellow"></div>
+<div class="red"></div>
+
+<script>
+  function changeColor(color) {
+    var lights = document.getElementsByTagName('div');
+    for (var i = 0; i < 3; i++) lights[i].classList.remove('light');
+    document.getElementsByClassName(color)[0].classList.add('light');
+  }
+
+  let times = 0
+  function go() {
+    setInterval(() => {
+      if (times % 17 < 10) {
+        changeColor('green')
+      } else if (times % 17 < 12) {
+        changeColor('yellow')
+      } else {
+        changeColor('red')
+      }
+      times++;
+    }, 1000)
+  }
+  go()
+
+</script>

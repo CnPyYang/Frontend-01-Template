@@ -23,39 +23,26 @@
 <div class="red"></div>
 
 <script>
-    function green() {
+    function changeColor(color) {
         var lights = document.getElementsByTagName('div');
         for (var i = 0; i < 3; i++) lights[i].classList.remove('light');
-        document.getElementsByClassName('green')[0].classList.add('light');
-    }
-    function red() {
-        var lights = document.getElementsByTagName('div');
-        for (var i = 0; i < 3; i++) lights[i].classList.remove('light');
-        document.getElementsByClassName('red')[0].classList.add('light');
-    }
-    function yellow() {
-        var lights = document.getElementsByTagName('div');
-        for (var i = 0; i < 3; i++) lights[i].classList.remove('light');
-        document.getElementsByClassName('yellow')[0].classList.add('light');
+        document.getElementsByClassName(color)[0].classList.add('light');
     }
 
     function sleep(t) {
-        return new Promise((resolve, reject) => {
-            setTimeout(resolve, t);
-        });
+        return new Promise((res,rej) => {
+            setTimeout(res,t)
+        })
     }
 
     function go() {
-        green();
-        sleep(1000)
-            .then(() => {
-                yellow();
-                return sleep(200);
-            })
-            .then(() => {
-                red();
-                return sleep(500);
-            })
-            .then(go);
+        changeColor('green')
+        sleep(1000).then(() => {
+            changeColor('yellow')
+            return sleep(200);
+        }).then(() => {
+            changeColor('red')
+            return sleep(500);
+        }).then(go);
     }
 </script>
