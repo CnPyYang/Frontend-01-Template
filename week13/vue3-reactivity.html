@@ -1,0 +1,152 @@
+<script>
+  const toProxy = new WeakMap();
+  const toRaw = new WeakMap();
+
+  function isObject(obj) {
+    return typeof obj === 'object' || obj === null;
+  }
+
+  function hasOwn(obj, key) {
+    return obj.hasOwnProperty(key);
+  }
+
+  function reactive(obj) {
+    if (!isObject(obj)) {
+      return obj;
+    }
+
+    if (toProxy.has(obj)) {
+      return toProxy.get(obj);
+    }
+
+    if (toRaw.has(obj)) {
+      return obj;
+    }
+
+    const observed = new Proxy(obj, {
+      get(target, key, receiver) {
+        //return target[key];
+        const res = Reflect.get(target, key, receiver);
+        console.log(`获取 ${key}: ${res}`);
+
+        // 依赖收集
+        track(target, key);
+
+        return isObject(res) ? reactive(res) : res;
+      },
+
+      set(target, key, value, receiver) {
+        const hadKey = hasOwn(target, key);
+        const oldVal = target[key];
+        const res = Reflect.set(target, key, value, receiver);
+        // console.log(`设置 ${key}: ${value}`);
+        // trigger(target, 'SET', key);
+
+        if (!hadKey) {
+          console.log(`新增${key}:${value}`);
+          trigger(target, 'ADD', key);
+        } else if (oldVal !== value) {
+          console.log(`设置${key}:${value}`);
+          trigger(target, 'SET', key);
+        }
+        return res;
+      },
+
+      deleteProperty(target, key) {
+        const hadKey = hasOwn(target, key)
+        const res = Reflect.deleteProperty(target, key);
+        // console.log(`删除 ${key}`);
+        // trigger(target, 'DELETE', key);
+        if (res && hadKey) {
+          console.log(`删除${key}:${res}`)
+          trigger(target, 'DELETE', key)
+        }
+        return res;
+      }
+    });
+
+    toProxy.set(obj, observed);
+    toRaw.set(observed, obj);
+
+    return observed;
+  }
+
+  const activeReactiveEffectStack = [];
+
+
+  let targetsMap = new WeakMap();
+
+  function track(target, key) {
+    const effect = activeReactiveEffectStack[activeReactiveEffectStack.length - 1];
+    if (effect) {
+      let depsMap = targetsMap.get(target);
+      if (!depsMap) {
+        depsMap = new Map();
+        targetsMap.set(target, depsMap);
+      }
+
+      let deps = depsMap.get(key);
+      if (!deps) {
+        deps = new Set();
+        depsMap.set(key, deps);
+      }
+      if (!deps.has(effect)) {
+        deps.add(effect);
+      }
+    }
+  }
+
+  function effect(fn) {
+    const rxEffect = function (...args) {
+      try {
+        activeReactiveEffectStack.push(rxEffect);
+        return fn(...args);
+      } finally {
+        activeReactiveEffectStack.pop();
+      }
+    }
+
+    rxEffect();
+    return rxEffect;
+  }
+
+  // 触发target.key对应响应函数
+  function trigger(target, type, key) {
+    // 获取依赖表
+    const depsMap = targetsMap.get(target);
+    if (depsMap) {
+      // 获取响应函数集合
+      const deps = depsMap.get(key);
+      const effects = new Set();
+      if (deps) {
+        // 执行所有响应函数
+        deps.forEach(effect => {
+          // effect()
+          effects.add(effect);
+        });
+      }
+
+      // 数组新增或删除
+      if (type === 'ADD' || type === 'DELETE') {
+        if (Array.isArray(target)) {
+          const deps = depsMap.get('length');
+          if (deps) {
+            deps.forEach(effect => {
+              effects.add(effect);
+            });
+          }
+        }
+      }
+      // 获取已存在的Dep Set执行
+      effects.forEach(effect => effect())
+    }
+  }
+
+  const data = { foo: 'foo', bar: { a: 1 } };
+  const p = reactive(data);
+
+  effect(() => {
+    console.log('属性发生了变化:', p.foo);
+  });
+  p.foo = 'foooooooooooo'
+</script>
