@@ -1,0 +1,147 @@
+### String Literals
+
+StringLiteral ::
+  - " DoubleStringCharacters<sup>opt</sup> "
+  - ' SingleStringCharacters<sup>opt</sup> '
+
+DoubleStringCharacters ::
+  - DoubleStringCharacter DoubleStringCharacters<sup>opt</sup>
+
+SingleStringCharacters ::
+  - SingleStringCharacter SingleStringCharacters<sup>opt</sup>
+
+DoubleStringCharacter ::
+  - SourceCharacter but not one of " or \ or LineTerminator`^[^"\\\n\r\u2028\u2029]$`
+  - \<LS\> `^\u2028$`
+  - \<PS\> `^\u2029$`
+  - \ EscapeSequence`/^\\(u([0-9a-fA-F]{4}|\{(10|0?[0-9a-fA-F])[0-9a-fA-F]{0,4}\})|x[0-9a-fA-F]{2}|0(?!=\d)|[^\n\r\u2028\u2029\dxu])$/u`
+  - LineContinuation`/^\\(\n|\r\n?|\u2028|\u2029)$/u`
+
+SingleStringCharacter ::
+  - SourceCharacter but not one of ' or \ or LineTerminator`^[^'\\\n\r\u2028\u2029]$`
+  - \<LS\>`^\u2028$`
+  - \<PS\>`^\u2029$`
+  - \ EscapeSequence`/^\\(u([0-9a-fA-F]{4}|\{(10|0?[0-9a-fA-F])[0-9a-fA-F]{0,4}\})|x[0-9a-fA-F]{2}|0(?!=\d)|[^\n\r\u2028\u2029\dxu])$/u`
+  - LineContinuation `/^\\(\n|\r\n?|\u2028|\u2029)$/u`
+
+```js
+/^\\(\n|\r\n?|\u2028|\u2029)$/u
+```
+LineContinuation ::
+  - \ LineTerminatorSequence
+
+```js
+/^(\n|\r\n?|\u2028|\u2029)$/u
+```
+LineTerminatorSequence ::
+  - \<LF\>
+  - \<CR\>\[lookahead ≠ \<LF\>\]
+  - \<LS\>
+  - \<PS\>
+  - \<CR\>\<LF\>
+
+```js
+/^u([0-9a-fA-F]{4}|\{(10|0?[0-9a-fA-F])[0-9a-fA-F]{0,4}\})$|^x[0-9a-fA-F]{2}$|^0(?!=\d)$|^[^\n\r\u2028\u2029\dxu]$/u
+```
+EscapeSequence ::
+  - CharacterEscapeSequence `/^[^\n\r\u2028\u2029\dxu]$/u`
+  - 0 \[lookahead ∉ DecimalDigit\]`/^0(?!=\d)$/`
+  - HexEscapeSequence  `/^x[0-9a-fA-F]{2}$/`
+  - UnicodeEscapeSequence`/^u([0-9a-fA-F]{4}|\{(10|0?[0-9a-fA-F])[0-9a-fA-F]{0,4}\})$/`
+
+```js
+`/^[^\n\r\u2028\u2029\dxu]$/u`
+```
+CharacterEscapeSequence ::
+  - SingleEscapeCharacter `/^['"\\bfnrtv]$/`
+  - NonEscapeCharacter  `/^[^\n\r\u2028\u2029'"\\bfnrtv\dxu]$/u`
+
+```js
+/^[^\n\r\u2028\u2029'"\\bfnrtv\dxu]$/u
+```
+NonEscapeCharacter ::
+  - SourceCharacter but not one of EscapeCharacter or LineTerminator
+
+
+```js
+/^\u{0}-\u{10ffff}$/
+```
+SourceCharacter ::
+  - any Unicode code point (U+0000 to U+10FFFF)
+
+
+```js
+/^[\n\r\u2028\u2029]$/
+```
+LineTerminator ::
+  - <LF> U+000A LINE FEED (LF)
+  - <CR> U+000D CARRIAGE RETURN (CR)
+  - <LS> U+2028 LINE SEPARATOR
+  - <PS> U+2029 PARAGRAPH SEPARATOR
+
+
+```js
+/^['"\\bfnrtv\dxu]$/
+```
+EscapeCharacter ::
+  - SingleEscapeCharacter `/^['"\\bfnrtv]$/`
+  - DecimalDigit  `/^\d$/`
+  - x
+  - u
+
+```js
+/^['"\\bfnrtv]$/
+```
+SingleEscapeCharacter :: one of
+  - ' " \ b f n r t v
+
+
+```js
+/^\d$/
+```
+DecimalDigit :: one of
+  - 0 1 2 3 4 5 6 7 8 9
+
+
+```js
+/^x[0-9a-fA-F]{2}$/
+```
+HexEscapeSequence ::
+  - x HexDigit HexDigit
+
+
+```js
+/^u([0-9a-fA-F]{4}|\{(10|0?[0-9a-fA-F])[0-9a-fA-F]{0,4}\})$/
+```
+UnicodeEscapeSequence ::
+  - u Hex4Digits    `/^u[0-9a-fA-F]{4}$/`
+  - u{ CodePoint }  `/^u\{(10|0?[0-9a-fA-F])[0-9a-fA-F]{0,4}\}$/`
+
+
+```js
+/^[0-9a-fA-F]{4}$/
+```
+Hex4Digits ::
+  - HexDigit HexDigit HexDigit HexDigit
+
+
+```js
+/^\u{0}-\u{10FFFF}$/
+```
+CodePoint ::
+  - HexDigits but only if MV of HexDigits ≤ 0x10FFFF
+
+
+```js
+/^[0-9a-fA-F]+$/
+```
+HexDigits ::
+  - HexDigit`/^[0-9a-fA-F]$/`
+  - HexDigits HexDigit
+
+
+```js
+/^[0-9a-fA-F]$/
+```
+HexDigit :: one of
+  - 0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F

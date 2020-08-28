@@ -1,0 +1,57 @@
+<script>
+
+  // 监听数组
+  const prototype = Array.prototype;
+  const arrProto = Object.create(prototype);
+  const arr = ['push', 'pop', 'shift', 'unshift', 'reverse', 'sort', 'splice'];
+  arr.forEach(method => {
+    arrProto[method] = function () {
+      prototype[method].apply(this, arguments);
+      notifyUpdate();
+    }
+  });
+
+  // 监听对象
+  function observe(obj) {
+    if (typeof obj !== 'object' || obj !== null) {
+      return obj;
+    }
+
+    if (Array.isArray(obj)) {
+      Object.setPrototypeOf(obj, arrProto);
+    } else {
+      const keys = Object.keys(obj);
+      for (var i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        defineReactive(obj, key, obj[key]);
+      }
+    }
+  }
+
+  // 定义属性拦截器
+  function defineReactive(obj, key, val) {
+    observe(val);
+
+    Object.defineProperty(obj, key, {
+      get() {
+        return val;
+      },
+      set(newVal) {
+        if (newVal !== val) {
+          observe(newVal); //值可能是一个对象
+          notifyUpdate();
+          val = newVal;
+        }
+      }
+    });
+  }
+
+  // 通知更新
+  function notifyUpdate() {
+    console.log("数据更新！");
+  }
+
+  const data = { foo: 'foo', bar: { a: 'bar' }, arr: [1, 2, 3] }
+  observe(data);
+  data.arr.length = 1;
+</script>

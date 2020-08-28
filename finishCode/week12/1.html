@@ -1,0 +1,36 @@
+<script>
+  // const rule = /^(\.\d+|(0|[1-9]\d*)(\.\d*)?)([eE][-\+]?\d+)?/
+  var reg = /([0-9\.]+)|([ ]+)|([\r\n]+)|(\+)|(\-)|(\*)|(\/)/g
+
+  var dic = ['Number', 'Whitespace', 'LineTerminator', '+', '-','*','/']
+  function* tokenize(sourse) {
+    let result = null
+    let lastIndex = 0
+    do {
+      lastIndex = reg.lastIndex
+      result = reg.exec(sourse)
+
+      if(!result) break;
+      if(reg.lastIndex - lastIndex > result[0].length)
+        throw new Error('Unexpected token')
+
+      let token ={
+        type: null,
+        value: null
+      }
+
+      for (let i = 0; i < dic.length; i++) {
+        if(result[i+1]){
+          token.type = dic[i]
+        }
+      }
+      token.value = result[0]
+
+      yield token
+    } while (result)
+  }
+
+  for(let token of tokenize('1024 + 10 * 20')) {
+    console.log(token)
+  }
+</script>
